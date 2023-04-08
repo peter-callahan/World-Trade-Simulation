@@ -1,0 +1,12 @@
+﻿Resource,Weight,Transferable
+Population,0,False
+Water,0.1,True
+MetallicElements,0,True
+Timber,0.1,True
+MetallicAlloys,0.2,True
+Electronics,0.5,True
+Housing,0.8,False
+MetallicAlloyWaste,-0.5,True
+ElectronicWaste,-0.8,True
+HousingWaste,-0.4,True
+AvailableLand,0,False

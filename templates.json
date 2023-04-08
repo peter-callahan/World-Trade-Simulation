@@ -1,0 +1,48 @@
+{
+  "CreateHousing": {
+    "Inputs": {
+      "AvailableLand": 1,
+      "Population": 5,
+      "Water": 5,
+      "MetallicElements": 1,
+      "Timber": 5,
+      "MetallicAlloys": 3,
+      "PotentialEnergyUsable": 5
+    },
+    "Outputs": {
+      "Housing": 1,
+      "HousingWaste": 1,
+      "Population": 5,
+      "Water": 4
+    }
+  },
+  "CreateAlloys": {
+    "Inputs": {
+      "Population": 1,
+      "Water": 3,
+      "MetallicElements": 2,
+      "PotentialEnergyUsable": 3
+    },
+    "Outputs": {
+      "Population": 1,
+      "MetallicAlloys": 1,
+      "MetallicAlloysWaste": 1,
+      "Water": 2
+    }
+  },
+  "CreateElectronics": {
+    "Inputs": {
+      "Population": 1,
+      "Water": 3,
+      "MetallicAlloys": 3,
+      "MetallicElements": 3,
+      "PotentialEnergyUsable": 3
+    },
+    "Outputs": {
+      "Population": 1,
+      "Electronics": 2,
+      "ElectronicsWaste": 1,
+      "Water": 2
+    }
+  }
+}
