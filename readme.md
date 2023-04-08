@@ -13,16 +13,15 @@
 
 ## Config Settings
 
-Settings may be adjusted from inside the tradesim.py script.  They are marked in the top 40 lines of code and include descriptions. 
+Settings may be adjusted from inside the simulation_configuration.py file.
 
 ## How to run 
 
-Set your configuration parameters in tradesim.py and run the tradesim.py command.  Note that the script will look for the config files listed above in the same directory that you run the script.  You can adjust this using the base_dir variable inside the tradesim.py file, but if you run everything in the same 
-directory it will work fine. 
+Set your configuration parameters and run tradesim.py.  Note that the script will look for the config files listed above in the same directory that you run the script.  You can adjust this using the base_dir variable inside simulation_configuration.py.  
 
 ## Output
 
-This agent uses an anytime serach and will return the a better search strategy if it encounters it.  When this occurs the following files get updated:
+This agent uses an anytime serach and will return a better search strategy anytime it encounters one.  When this occurs the following files get updated:
 
 1. best_node_transaction_list.txt - a list of transactions starting with the initial state.
 2. best_node_metadata.txt - relevant metadata related to the search, like final global utility (of best search) and other relevant metadata

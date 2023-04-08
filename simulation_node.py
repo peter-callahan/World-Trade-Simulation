@@ -10,8 +10,6 @@ class Simulation_Node(object):
         self.country_dict = country_list
         self.hex_name = secrets.token_hex(nbytes=16)
 
-        # list of all the builds/transactions 
-        # self.history = history
         self.global_utility = global_utility
         self.possible_actions = possible_actions  # possible actions apply to the country level, updated on each step of model 
         self.action_taken = action_taken        # actions taken at a specific node
@@ -30,8 +28,6 @@ class Simulation_Node(object):
             )
             '''
 
-    # def log_event_global_hist(self, event):
-    #     self.history.append(event)
 
     def get_discount_rate(self):
 
@@ -48,26 +44,18 @@ class Simulation_Node(object):
         else:
             return 0.8
 
-    #def track_previously_performed_events(self, current_depth, event, country):
-    #def track_previously_performed_events(self, parent_node_id, event, country, frontier):
     def track_previously_performed_events(self, parent_node_id, event, frontier):
         
-        # hex names 
-        # if parent_node_id in current_country.country_frontier:
         if parent_node_id in frontier.keys():
             
             # check if event occurred at a given parent node N
-            # if event in current_country.country_frontier[parent_node_id]:
             if event in frontier[parent_node_id]:
-                # current_country.country_frontier[parent_node_id][event] += 1
                 frontier[parent_node_id][event] += 1
             else:
-                # current_country.country_frontier[parent_node_id][event] = 1
                 frontier[parent_node_id][event] = 1
 
-        # no depth, no country
+        # new parent node, add it to the tracker
         else:
-            # current_country.country_frontier[parent_node_id] = { event : 1 }
             frontier[parent_node_id] = { event : 1 }
 
     def update_country_states(self, country_to_update):
@@ -174,27 +162,15 @@ class Simulation_Node(object):
 
         return event
 
-    # def report_history(self):
-    #     for n, event in enumerate(self.history):
-    #         print(f'{n}: {event}')
-
     
     def update_global_expected_utiliziation(self):
 
-        #new_utility = self.calculate_global_expected_utiliziation()
-
-        # consider discounting here, perhaps other actions are possible?
-
         self.global_utility = self.calculate_global_expected_utiliziation()
-        #self.global_utility.append(new_utility)
-
 
 
     def calculate_global_expected_utiliziation(self, verbose=False):
         '''
-        Calculates global utilization by taking the average of all current utilities and returning the value
-        todo: update this to account for discounting 
-        todo: update to include probability of schedule acceptance.  
+        Calculates and returns global utilization by taking the average of all current utilities
         '''
         values = []
 
@@ -221,7 +197,6 @@ class Simulation_Node(object):
                                          qty=option[4], 
                                          shadow_mode=True)
 
-            #def transfer(self, source_country, target_country, resource, amount_transferred, verbose=False, shadow_mode=False):
             elif option[0] == 'Transfer':
                 outcome = self.transfer(source_country=option[1], 
                                          target_country=option[2], 
@@ -249,7 +224,6 @@ class Simulation_Node(object):
             parent_identifier = self.parent_node.hex_name
 
         options =  self.country_dict[country].generate_country_options(self.country_dict.keys(), 
-                                                        #current_depth=self.depth, 
                                                         parent_node_id=parent_identifier,
                                                         frontier=frontier,
                                                         minimum_transfer=minimum_transfer,
@@ -289,7 +263,6 @@ class Simulation_Node(object):
         prev_node = deepcopy(self.parent_node)
 
         if log_no_action and verbose:
-            # self.log_event_global_hist(f'{(self.depth, self.country_acting)}, No action') # temp_log_details
             print(f'{self.depth} {self.country_acting} No action, up one node.')
 
         # things from self are preserved as we move upward to a parent node.  We need to roll back depth and parent.parent to keep history.
@@ -297,12 +270,11 @@ class Simulation_Node(object):
 
         return self.__class__(
             prev_node.country_dict,        
-            # history=prev_node.history,                           
             parent_node=prev_node.parent_node,              
             global_utility=prev_node.global_utility,       
             turn_tracker=prev_node.turn_tracker,
             possible_actions=prev_node.possible_actions, 
-            action_taken=prev_node.action_taken,               # roll back everything expect actions taken.  turn tracker is trivial
+            action_taken=prev_node.action_taken,               # roll back everything expect actions taken. 
             depth=prev_node.depth                       
             )
 
@@ -317,7 +289,6 @@ class Simulation_Node(object):
             # ('Transfer', 'Atlantis', 'Carpania', 'Water',        100)
 
             if next_move[0] == 'Create':
-                # could get cool and use a decorator here
                 outcome = self.transform(self.country_dict[country].name, template = next_move[3], qty = next_move[4], verbose=verbose)
                 
                 self.update_global_expected_utiliziation()
@@ -330,30 +301,18 @@ class Simulation_Node(object):
                 self.update_country_states(self.country_dict[country])   
                 self.update_country_states(self.country_dict[next_move[2]])   
 
-            # elif next_move[0] is None:
-            #     outcome = ('No Move',  country, country, None, 0)
-
             else:
                 raise ValueError("Illegal Transformation Detected.")
 
-            # log events and possible actions to current node's acting coutnry
-            # self.log_event_global_hist((current_depth, outcome))
-            temp_log_details = (f'Action by {country}', self.country_dict)
+            # temp_log_details = (f'Action by {country}', self.country_dict)
 
-            # self.log_event_global_hist((self.depth, outcome)) # temp_log_details
-            
-            # record actions for this country at this depth.  Prevent trade loops
             if self.parent_node is None:
                 parent_identifier = 'top_level_node'
 
             else:
                 parent_identifier = self.parent_node.hex_name
 
-            #self.track_previously_performed_events(parent_identifier, outcome, country) 
-            # parent_node_id, event, frontier)
             self.track_previously_performed_events(parent_identifier, outcome, frontier) 
-            
-
             self.possible_actions[country].remove(next_move)
 
             if verbose:
@@ -375,7 +334,7 @@ class Simulation_Node(object):
     
     def extract_transaction_sequence(self):
 
-        # so not change self, perform calculation and step through on a copy of self
+        # do not change self, perform calculation and step through on a copy of self
         starting_node = deepcopy(self)
 
         transactions = []
@@ -386,7 +345,7 @@ class Simulation_Node(object):
             # transactions.append((str(starting_node.action_taken)) +  ' Global Util: ' + str(starting_node.global_utility[-1]))
             starting_node = starting_node.prev_node_state()
 
-        # grab the first transaction
+        # include the first transaction.  We are backing out of the tree so the first transaction gets recorded last. 
         transactions.append(starting_node.action_taken)
 
         return list(reversed(transactions))
