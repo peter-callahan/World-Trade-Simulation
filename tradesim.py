@@ -1,11 +1,11 @@
 
 import json
 import os
-import sys
+import csv
 
 from country import Country
 from simulation_node import Simulation_Node
-from util import get_turn_tracker
+from util import get_turn_tracker, initialize_transaction_sequence
 from simulation_configuration import MINIMUM_TRANSFER, CREATE_INTERVALS, SORT_STRATEGY, MAX_DEPTH, MAX_REPEATS, countries, my_country_name, total_counter, base_dir
 
 from copy import copy
@@ -68,12 +68,9 @@ __ = next_node.get_options(minimum_transfer=MINIMUM_TRANSFER,
                            sort_method=SORT_STRATEGY,
                            max_repeats=MAX_REPEATS)
 
-#global_hist.append(next_node)
-
 best_node_so_far = copy(next_node)
 best_node_so_far.parent_node = first_node
 
-# no_actions = []
 best_actions = []
 node_explore = 0
 
@@ -83,13 +80,23 @@ pbar = tqdm(total=total_counter)
 
 verbose = False
 
+utility_tracker = []
+
+model_log_filename = 'best_node_transaction_list.csv'
+initialize_transaction_sequence(filename=model_log_filename, headers=['Model_ID', 'Global_Utility', 'Depth','Action_Type', 'Actor', 'Target', 'Action', 'Quantity']) 
+
 while total_counter > 0:
 
     total_counter = total_counter - 1
 
+    utility_tracker.append((next_node.global_utility, next_node.depth, total_counter))
+
     if total_counter % 10 == 0:
         pbar.update(10)
-        #print( sys.getsizeof(next_node) )
+
+    if total_counter % 1000 == 0:
+        # append list of transactions for most recent node to a list so we can snapshot where we are in the search
+        pass 
 
     # we are back at root with nowhere to go.  End.
     if next_node is None:
@@ -99,7 +106,6 @@ while total_counter > 0:
     elif next_node.depth == MAX_DEPTH:
         
         next_node = next_node.prev_node_state(verbose=verbose)
-        #global_hist.append(next_node)
 
     else:
         __ = next_node.get_options(minimum_transfer=MINIMUM_TRANSFER, 
@@ -111,14 +117,11 @@ while total_counter > 0:
         # no actions for this player at this node
         if len(next_node.possible_actions[ next_node.country_acting ]) == 0:
 
-            #no_actions.append((next_node.country_acting, next_node.depth, next_node.parent_node))
-
             # back at root node and out of options, end!
             if next_node.depth == 1: 
                 break
 
             next_node = next_node.prev_node_state(verbose=verbose)
-            #global_hist.append(next_node)
 
         # proceed with selecting an action, advance down decision tree
         else:
@@ -145,9 +148,6 @@ while total_counter > 0:
 
                     best_actions.append(best_node_data)
 
-                    #with open('best_node_network_graph.json', 'w') as f:
-                    #    json.dump(best_node_so_far.history, f, indent=4)
-
                     with open('best_node_metadata.txt', 'w') as f:
 
                         output = (f"Final Global Utility {best_node_so_far.global_utility}\n"
@@ -158,11 +158,16 @@ while total_counter > 0:
                         
                         f.write(str(output))
                     
-                    transactions_of_best_outcome = best_node_so_far.extract_transaction_sequence() 
-
-                    with open('best_node_transaction_list.txt', 'w') as f:
-                        for transaction in transactions_of_best_outcome:
-                            f.write(str(transaction) + "\n")
+                    _ = best_node_so_far.extract_transaction_sequence(filename=model_log_filename) 
 
 pbar.close()
+
+# export log of global utility changes for graphing
+with open('node_log.csv', 'w') as f:
+
+    wr = csv.writer(f)
+    wr.writerow(['step', 'global_util', 'depth', 'count_remaining'])
+
+    for n, log in enumerate(utility_tracker):
+        wr.writerow([n, *log])
 

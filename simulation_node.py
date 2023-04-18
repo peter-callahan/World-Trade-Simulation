@@ -1,4 +1,5 @@
 import secrets
+import csv
 
 from copy import deepcopy
 from collections import Counter
@@ -12,7 +13,7 @@ class Simulation_Node(object):
 
         self.global_utility = global_utility
         self.possible_actions = possible_actions  # possible actions apply to the country level, updated on each step of model 
-        self.action_taken = action_taken        # actions taken at a specific node
+        self.action_taken = action_taken          # actions taken at a specific node
         self.parent_node = parent_node
         self.turn_tracker = turn_tracker
         self.country_acting = self.turn_tracker[depth]
@@ -267,7 +268,6 @@ class Simulation_Node(object):
 
         # things from self are preserved as we move upward to a parent node.  We need to roll back depth and parent.parent to keep history.
         # self.country_dict contains history, need to keep track to apply logic based on what we've done so far.
-
         return self.__class__(
             prev_node.country_dict,        
             parent_node=prev_node.parent_node,              
@@ -279,7 +279,6 @@ class Simulation_Node(object):
             )
 
     def next_node_state(self, frontier, verbose=False, minimum_transfer=[200], intervals_to_check=[100,10]):  # country
-        # log to simulation stage
 
         country = self.country_acting
 
@@ -303,8 +302,6 @@ class Simulation_Node(object):
 
             else:
                 raise ValueError("Illegal Transformation Detected.")
-
-            # temp_log_details = (f'Action by {country}', self.country_dict)
 
             if self.parent_node is None:
                 parent_identifier = 'top_level_node'
@@ -332,20 +329,32 @@ class Simulation_Node(object):
             depth=self.depth + 1), 
             frontier)
     
-    def extract_transaction_sequence(self):
+    def extract_transaction_sequence(self, filename=None):
 
         # do not change self, perform calculation and step through on a copy of self
         starting_node = deepcopy(self)
+
+        # ensures a unique node name for telling model data apart from one another
+        salt = str(secrets.randbelow(500000)).zfill(6)
 
         transactions = []
 
         while starting_node.parent_node is not None:
 
             transactions.append(starting_node.action_taken)
-            # transactions.append((str(starting_node.action_taken)) +  ' Global Util: ' + str(starting_node.global_utility[-1]))
             starting_node = starting_node.prev_node_state()
 
         # include the first transaction.  We are backing out of the tree so the first transaction gets recorded last. 
         transactions.append(starting_node.action_taken)
 
-        return list(reversed(transactions))
+        list_output = list(reversed(transactions))
+
+        if filename:
+            with open(filename, 'a') as f:  
+                
+                wr = csv.writer(f)
+                for row in list_output:
+                    wr.writerow([(self.hex_name + '_' + salt), self.global_utility, self.depth, *row])
+
+        return list_output
+    

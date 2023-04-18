@@ -1,5 +1,6 @@
 from collections.abc import Mapping
 import math
+import csv
 
 ## Utility Functions
 def flatten_list(l):
@@ -37,3 +38,13 @@ def get_turn_tracker(depth, counties):
             counter = counter + 1
 
     return turn_tracker
+
+def initialize_transaction_sequence(filename, headers):
+    '''
+    filename: name of log file for current run
+    headers: column names to be logged, must match what is recorded during simulation run
+    '''
+    with open(filename, 'w') as f:    
+        wr = csv.writer(f)
+        wr.writerow(headers)
+ 

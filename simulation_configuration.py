@@ -26,7 +26,7 @@ countries = ['Atlantis', 'Brobdingnag', 'Carpania', 'Dinotopia']   # 'Atlantis',
 SORT_STRATEGY = 'utility_first'                
 
 # used to limit number of steps taken in simulation.  Test with a low number then increase to set the upper bound. 
-total_counter = 30000
+total_counter = 100
 
 #################
 ## End of configuration
