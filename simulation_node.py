@@ -3,6 +3,8 @@ import csv
 
 from copy import deepcopy
 from collections import Counter
+from random import shuffle, randrange
+from math import floor
 
 class Simulation_Node(object):
 
@@ -213,7 +215,7 @@ class Simulation_Node(object):
         return output_list 
 
 
-    def get_options(self, minimum_transfer, intervals_to_check, frontier, sort_method='std', max_repeats=3):
+    def get_options(self, minimum_transfer, intervals_to_check, frontier, sort_method='std', max_repeats=3, reduction_limit=0.9):
         # Options recalculated at each node, for each acting country, based on changing resources. 
 
         country = self.country_acting 
@@ -246,8 +248,38 @@ class Simulation_Node(object):
         elif sort_method == 'utility_first':
             sorted_options = sorted(options_with_util, key=lambda x: x[5], reverse=True)
 
+        elif sort_method == 'utility_first_and_reduce':
+            sorted_options = sorted(options_with_util, key=lambda x: x[5], reverse=True)
+
+            reduction_limit = floor(len(sorted_options) * reduction_limit)
+
+            # if down to 3 options, do not remove anything
+            if reduction_limit > 3:
+
+                for x in range(0, reduction_limit):
+                    sorted_options.pop(randrange(len(sorted_options)))
+
+
         elif sort_method == 'utility_last':
             sorted_options = sorted(options_with_util, key=lambda x: x[5], reverse=False)
+
+        elif sort_method == 'random':
+            shuffle(options_with_util)
+            sorted_options = options_with_util
+
+        elif sort_method == 'random_and_reduce':
+
+            # remove ~20% of list elements randomly
+            reduction_limit = floor(len(options_with_util) * reduction_limit)
+
+            # if down to 3 options, do not remove anything
+            if reduction_limit > 3:
+
+                for x in range(0, reduction_limit):
+                    options_with_util.pop(randrange(len(options_with_util)))
+
+            shuffle(options_with_util)
+            sorted_options = options_with_util
         
         else:
             raise ValueError('Invalid sort method.')
