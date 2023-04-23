@@ -4,6 +4,7 @@ import os
 import csv
 
 from country import Country
+from datetime import datetime
 from simulation_node import Simulation_Node
 from util import get_turn_tracker, initialize_transaction_sequence
 from simulation_configuration import MINIMUM_TRANSFER, CREATE_INTERVALS, SORT_STRATEGY, MAX_DEPTH, MAX_REPEATS, countries, my_country_name, total_counter, base_dir
@@ -48,10 +49,10 @@ turn_tracker_input = get_turn_tracker(MAX_DEPTH, countries)
 first_node = Simulation_Node(world_list, turn_tracker=turn_tracker_input)
 
 _ = first_node.get_options(minimum_transfer=MINIMUM_TRANSFER, 
-                           intervals_to_check=CREATE_INTERVALS, 
-                           sort_method=SORT_STRATEGY,
-                           frontier=frontier,
-                           max_repeats=MAX_REPEATS)
+                        intervals_to_check=CREATE_INTERVALS, 
+                        sort_method=SORT_STRATEGY,
+                        frontier=frontier,
+                        max_repeats=MAX_REPEATS)
 
 #global_hist = []
 #global_hist.append(first_node)
@@ -63,10 +64,10 @@ del next_country
 next_node, frontier = first_node.next_node_state(frontier)
 next_node.parent_node = first_node
 __ = next_node.get_options(minimum_transfer=MINIMUM_TRANSFER, 
-                           intervals_to_check=CREATE_INTERVALS, 
-                           frontier=frontier,
-                           sort_method=SORT_STRATEGY,
-                           max_repeats=MAX_REPEATS)
+                        intervals_to_check=CREATE_INTERVALS, 
+                        frontier=frontier,
+                        sort_method=SORT_STRATEGY,
+                        max_repeats=MAX_REPEATS)
 
 best_node_so_far = copy(next_node)
 best_node_so_far.parent_node = first_node
@@ -82,7 +83,8 @@ verbose = False
 
 utility_tracker = []
 
-model_log_filename = 'best_node_transaction_list.csv'
+saved_timestamp = datetime.now().strftime("%Y-%m-%d %H_%M_%S")
+model_log_filename = f'./sim_runs/{saved_timestamp}_best_node_transaction_list.csv'
 initialize_transaction_sequence(filename=model_log_filename, headers=['Model_ID', 'Global_Utility', 'Depth','Action_Type', 'Actor', 'Target', 'Action', 'Quantity']) 
 
 while total_counter > 0:
@@ -109,10 +111,10 @@ while total_counter > 0:
 
     else:
         __ = next_node.get_options(minimum_transfer=MINIMUM_TRANSFER, 
-                                   intervals_to_check=CREATE_INTERVALS,
-                                   frontier=frontier, 
-                                   sort_method=SORT_STRATEGY,
-                                   max_repeats=MAX_REPEATS)
+                                intervals_to_check=CREATE_INTERVALS,
+                                frontier=frontier, 
+                                sort_method=SORT_STRATEGY,
+                                max_repeats=MAX_REPEATS)
 
         # no actions for this player at this node
         if len(next_node.possible_actions[ next_node.country_acting ]) == 0:
@@ -148,13 +150,15 @@ while total_counter > 0:
 
                     best_actions.append(best_node_data)
 
-                    with open('best_node_metadata.txt', 'w') as f:
+                    metadata_filename = f'./sim_runs/{saved_timestamp}_best_node_metadata.txt'
+
+                    with open(metadata_filename, 'w') as f:
 
                         output = (f"Final Global Utility {best_node_so_far.global_utility}\n"
-                                  f"Utility Delta (from Initial State): {best_node_so_far.global_utility - first_node.global_utility}\n"
-                                  f"Max Depth: {MAX_DEPTH}\n"
-                                  f"Sort Strategy: {SORT_STRATEGY}\n"
-                                 )
+                                f"Utility Delta (from Initial State): {best_node_so_far.global_utility - first_node.global_utility}\n"
+                                f"Max Depth: {MAX_DEPTH}\n"
+                                f"Sort Strategy: {SORT_STRATEGY}\n"
+                                )
                         
                         f.write(str(output))
                     
@@ -163,11 +167,14 @@ while total_counter > 0:
 pbar.close()
 
 # export log of global utility changes for graphing
-with open('node_log.csv', 'w') as f:
+
+node_filename = f'./sim_runs/{saved_timestamp}_node_log.csv'
+with open(node_filename, 'w') as f:
 
     wr = csv.writer(f)
     wr.writerow(['step', 'global_util', 'depth', 'count_remaining'])
 
     for n, log in enumerate(utility_tracker):
         wr.writerow([n, *log])
+
 
