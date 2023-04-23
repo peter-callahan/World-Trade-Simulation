@@ -23,6 +23,8 @@ Set your configuration parameters and run tradesim.py.  Note that the script wil
 ### Run the script many times
 Set your configuration parameters (see config settings above).  Then run the orchestrator.py file, which invokes the tradesim.py file and runs the model 25 times in a row.  If so inclined you could change the number of reruns by changing the value on line 21 of orchestrator.py. 
 
+---
+
 ## Output
 
 ### Single Run
@@ -32,7 +34,12 @@ This agent uses an anytime search and will return a better search outcome anytim
 2. {TIMESTAMP HH_MM_SS}_best_node_metadata.csv - relevant metadata related to the search such as the final global utility (of the best search) and other relevant metadata
 3. {TIMESTAMP HH_MM_SS}_node_log.csv - a list of the running global utility at every step during model run.  This is used to see when, during a specific simulation, the highest score was reached. 
 
+---
+
 ## Findings
+
+* [YouTube Discussion, Part 1](https://www.youtube.com/watch?v=1pSE9G9kXzU)
+* [YouTube Discussion, Part 2](https://www.youtube.com/watch?v=hC5cQv9ajdo)
 
 I found that my AI agent often became lost in the search space, due to the high branching factor and the increasing depth I wanted to explore.  For this reason I needed a way to find new areas of the search space I never encountered before. 
 
@@ -64,7 +71,7 @@ Test 5 - utility 5.34 - 6.66
 Maintained sort, reduced search space (80%) and reduced iteration time.  There results were lackluster but illustrate the need for an auto-rerun capability when using the random search space reduction I have been pursuing.  
 
 Test 6 - utility 9.2
-Maintained sort, 90% search space reduction with reduced iteration and multiple reruns.  Reran the model 25 times sequentially resulting in 112 solutions of which this was the best. 
+Maintained sort, 80% search space reduction with reduced iteration and multiple reruns.  Reran the model 25 times sequentially resulting in 112 solutions of which this was the best. 
 
 ## Interesting Facts
 
@@ -72,9 +79,12 @@ Increasing depth generally had a positive effect on global utility, which makes 
 
 ![Depth vs Utility](https://callpete-public.s3.amazonaws.com/world_trade_simulation/Depth+vs+Utility.png)
 
-Some actions were more commonplace than others.  This would be an interesting area to explore further, or perhaps attempt to limit to encourage unique solutions.  This may be a result of the utility function, which uses resource weights drive agent activity. 
+---
+
+Some actions were more commonplace than others.  High depth solutions contained a higher percentage of transfer actions which may indicate the presence of trading loops in the agent. This would be an interesting area to explore further and search for ways to limit trades in an attempt to encourage unique solutions.  This activity may be driven by the utility function, which uses resource weights drive agent activity. 
 
 ![Distribution of Actions](https://callpete-public.s3.amazonaws.com/world_trade_simulation/Distribution+of+Actions.png)
+
 
 
 
