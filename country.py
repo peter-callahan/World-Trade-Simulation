@@ -1,14 +1,14 @@
 import json
 import pandas as pd
 
-class Country:
+class Country():
     '''
     country_name: path to CSV containing state data
     init_state_data: path to CSV file containing state data
     init_resource_weights: path to CSV file containing resource weight data
     templates = 'templates.json': path to JSON object that represents templates (blueprints)
     '''
-    
+
     def __init__(self, country_name: str, init_state_data: str, init_resource_weights: str, templates: str = 'templates.json'):
 
         self.name = country_name
@@ -22,7 +22,7 @@ class Country:
         self.resource_transferable = weights['Transferable']
         self.country_frontier = dict()
 
-        # if we encouter resources that do not have defined weights/transferaility, assume weight 0 and not transferable. 
+        # if we encouter resources that do not have defined weights/transferaility, assume weight 0 and not transferable.
         for resource in self.resources:
             if resource not in self.resource_transferable:
                 self.resource_transferable[resource] = False
@@ -40,7 +40,7 @@ class Country:
         return f'''
         {type(self).__name__}(
             Name={self.name}
-            Resource Weights={self.resource_weights}, 
+            Resource Weights={self.resource_weights},
             Resource Transferable={self.resource_transferable},
             Resources={self.resources}
             Templates={self.templates.keys()}
@@ -55,7 +55,7 @@ class Country:
         '''
 
         for resource in transform_input.keys():
-            if resource in self.resources:  
+            if resource in self.resources:
                 self.resources[resource] = self.resources[resource] + transform_input[resource]
             else:
                 self.resources[resource] = transform_input[resource]
@@ -63,7 +63,7 @@ class Country:
     def __sub__(self, transform_input:dict):
         # takes in dictionary and removes values from current country
         # check to be performed outside this function call
-        
+
         # only log subtractions (transfers) and transforms, "received from" is reduntant
 
         for resource in transform_input.keys():
@@ -87,7 +87,7 @@ class Country:
 
         if not util_init and verbose:
             print(f'[{self.name}] Utility updated {self.current_utility} -> {temp_util}')
-            
+
         self.current_utility = temp_util
 
     # Evaluate one move ahead, calculating the expected utility of completing it
@@ -98,7 +98,7 @@ class Country:
         '''
         ensure the transform can be completed with existing resources
         :param create_action: the name (str) of the thing to be created (i.e. CreateHousing)
-        :return: Tuple 
+        :return: Tuple
             True/False, indicating the presence or absense of sufficient resources
             Multiplier, an integar indicating the quantity of an item to be created.  If the test passes, this is the amount be can make.
             List of Tuples indicating resource shortages that caused the check to fail
@@ -110,16 +110,16 @@ class Country:
         necessary_input_resources = self.templates[create_action]['Inputs'].keys()
 
         for resource in necessary_input_resources:
-            
+
             cost_to_build = self.templates[create_action]['Inputs'][resource] * multiplier
             current_resource = self.resources[resource]
-            
+
             if resource in self.resources:
                 if current_resource < cost_to_build:
                     shortage = current_resource - cost_to_build
                     insufficient_resources.append((resource, shortage))
                     test_pass = False
-                
+
                 if current_resource >= cost_to_build:
                     shortage = 0
 
@@ -136,15 +136,15 @@ class Country:
     def csv_to_json_parser(self, csv_data, orient):
 
         csv_data = pd.read_csv(csv_data, index_col=[0])
-        
+
         return json.loads(csv_data.to_json(orient=orient, indent=4))
 
     def generate_country_options(self, world_list, parent_node_id, frontier, minimum_transfer=[200], intervals_to_check=[100,10], max_repeats=3):
-        
+
         options = []
 
         for next_template in self.templates.keys():
-            
+
             for multiplier in intervals_to_check:
 
                 resources_exist, qty_to_make, resource_shortage = self.check_resources(next_template, multiplier)
@@ -170,7 +170,7 @@ class Country:
 
                         if other_country == self.name:
                             # ensure transfers to self do not occur but transfers to other countries are considered.
-                            pass 
+                            pass
                         else:
                             # max_resources = country.resources[resource]
                             # options.append((resource, max_resources))
@@ -184,4 +184,4 @@ class Country:
 
                                 options.append(new_option)
 
-        return options 
+        return options

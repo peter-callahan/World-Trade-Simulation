@@ -11,6 +11,7 @@ documentation/
 *.iml
 last_node_in_search.json
 best_node_metadata.txt
-best_node_network_graph.json 
+best_node_network_graph.json
 best_node_transaction_list.csv
 node_log.csv
+sim_runs/*

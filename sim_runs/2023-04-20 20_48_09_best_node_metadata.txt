@@ -1,4 +1,0 @@
-Final Global Utility 8.381666666666668
-Utility Delta (from Initial State): 5.115
-Max Depth: 18
-Sort Strategy: utility_first_and_reduce
